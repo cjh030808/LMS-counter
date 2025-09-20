@@ -1,0 +1,29 @@
+{
+   "manifest_version": 3,
+   "name": "KAU LMS counter",
+   "version": "1.0.0",
+   "description": "항공대 lms 플러그인",
+   "icons": {
+     "128": "/images/icons8-falcon-128.png",
+     "16": "/images/icons8-falcon-16.png",
+     "32": "/images/icons8-falcon-32.png",
+     "48": "/images/icons8-falcon-48.png",
+     "64": "/images/icons8-falcon-64.png"
+   },
+   "content_scripts": [
+     {
+       "matches": ["*://lms.kau.ac.kr/mod/vod/viewer.php?*"],
+       "js": ["content.js"],
+       "css": ["style.css"],
+       "run_at": "document_idle"
+     }
+   ],
+   "web_accessible_resources": [
+     {
+       "resources": ["injected.js"],
+       "matches": ["*://lms.kau.ac.kr/*"]
+     }
+   ],
+   "description": "항공대 lms 플러그인",
+   "update_url": "https://clients2.google.com/service/update2/crx"
+}
