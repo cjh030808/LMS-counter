@@ -1,14 +1,17 @@
+// 'time' 이벤트는 비디오 재생 중 정해진 간격(ex. 250ms) 마다 호출됨.
+// callback parameter 로 event 객체가 전달됨.
 jwplayer().off('time')
 jwplayer().on('time', function (callback) {
     seek_position.current = callback.position;
 });
 
-
+// window 의 URL 을 객체로 받아와서 쿼리 파라미터로 적힌 id 값을 가져옴
 const url = new URL(window.location.href)
 const lecId = url.searchParams.get("id")
 
 function videoSpeedClick(){
     // jwplayer_speed(document.querySelector('#playBackRate').value) # not working since 2025-09-10.
+    // CJH - jwplayer.setPlaybackRate(rate) -> 0.25 ~ 4 배속만 지원하므로 아래 로직이 유리함
     document.querySelector('video').playbackRate = document.querySelector('#playBackRate').value
 }
 
@@ -30,34 +33,44 @@ function bookmarkRemoveClick(idx){
     localStorage.setItem(`bookmark`, JSON.stringify(currentBookmark));
 }
 
-
+// CJH - videoTag is deprecated since 2025-09-27. 
 function bookmarkClick(){
+    const player = jwplayer();
     let currentBookmark = JSON.parse(localStorage.getItem(`bookmark`))
 
-    videoTag.pause()
-    let memo = prompt("Bookmark를 알아보기 위한 메모를 적어두세요!", "memo")
-    videoTag.play()
+    // videoTag.pause()
+    player.pause();
+    // pause 를 synchronize하게 안정적으로 처리하기 위한 setTimeout
+    setTimeout(() => {
+        let memo = prompt("Bookmark를 알아보기 위한 메모를 적어두세요!", "memo");
 
-    if(memo === "") alert("memo는 꼭 적으셔야 합니다!")
-    else if(memo !=  null){
-        const currentTime = videoTag.currentTime
-        currentBookmark[lecId].push({"time" : currentTime, "memo" : memo})
-        localStorage.setItem(`bookmark`, JSON.stringify(currentBookmark));
+        // videoTag.play()
+        player.play();
 
-        $(".bookmark").append(`
-        <div class="mark">
-        <button class="bookmark_remove" onclick="bookmarkRemoveClick(${currentBookmark[lecId].length - 1})">
-        <img src="/mod/vod/pix/layer/viewer-close.png" />
-        </button> <br>
-        <div onclick="onTimeLineClick(${currentTime});" value=${currentTime}>
-        <span class="memo">${memo}</span> <br>
-        <span class="time">${parseInt(currentTime/3600)} : ${parseInt(currentTime/60%60).toString().padStart(2, "0")} :  ${parseInt(currentTime%60).toString().padStart(2, "0")}</span>
-        </div></div>`)
-    }
+        if(memo === "") {
+            alert("memo는 꼭 적으셔야 합니다!");
+        } else if(memo != null) {
+            const currentTime = player.getPosition(); 
+            currentBookmark[lecId].push({"time": currentTime, "memo": memo});
+            localStorage.setItem(`bookmark`, JSON.stringify(currentBookmark));
+
+            $(".bookmark").append(`
+            <div class="mark">
+                <button class="bookmark_remove" onclick="bookmarkRemoveClick(${currentBookmark[lecId].length - 1})">
+                    <img src="/mod/vod/pix/layer/viewer-close.png" />
+                </button> <br>
+                <div onclick="onTimeLineClick(${currentTime});" value=${currentTime}>
+                    <span class="memo">${memo}</span> <br>
+                    <span class="time">${parseInt(currentTime/3600)} : ${parseInt(currentTime/60%60).toString().padStart(2, "0")} :  ${parseInt(currentTime%60).toString().padStart(2, "0")}</span>
+                </div>
+            </div>`);
+        }
+    }, 50); // 50ms 정도의 짧은 지연을 주어 안정적으로 처리
 }
 
 function onTimeLineClick(e){
-    videoTag.currentTime = e
+    // videoTag.currentTime = e
+    jwplayer().seek(e);
 }
 
 $("#vod_header .vod_help").hide()
