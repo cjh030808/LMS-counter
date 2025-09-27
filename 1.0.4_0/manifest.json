@@ -1,0 +1,21 @@
+{
+   "content_scripts": [ {
+      "css": [ "style.css" ],
+      "js": [ "script.js" ],
+      "matches": [ "*://lms.kau.ac.kr/mod/vod/viewer.php?*" ],
+      "run_at": "document_idle",
+      "world": "MAIN"
+   } ],
+   "description": "한국항공대학교 LMS(Learning Management System) 보조프로그램",
+   "icons": {
+      "128": "/images/icons8-eagle-128.png",
+      "16": "/images/icons8-eagle-16.png",
+      "32": "/images/icons8-eagle-32.png",
+      "48": "/images/icons8-eagle-48.png"
+   },
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmJ7OMdzLJ3bdAaMl2gLNX81yo1zQadfU7lzkvRMTZZnqWwDjmumA/VzlYSlhnZItx5qOLO30PDU2YZi48QZZA7OQYkNl/WuUeHTj+x7NZf1nagtR9bwOrTvZMckWO98pJ6E1YaFm4ex2DWeFoYnlqKl/yLWBzJ0G0xjGSKAA/ITdGo6yjROrsG2HZn9nXepbXocsdDm4/VxDWCrQ1KcPUDvlTZoEyJUFLwggNQCwAP9FxFHKAfb8Al9C7/Qg5LmNtlrJzktFgDieDkodxyAm/sXKUbg1MRumHLFcJIH9GYIzA6cOU1t0+fnMD3da0s1dS3Ber1wWas1SbueVjkCBYwIDAQAB",
+   "manifest_version": 3,
+   "name": "KAU LMS Supporter",
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "1.0.4"
+}
