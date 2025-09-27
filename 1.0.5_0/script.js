@@ -115,3 +115,88 @@ $("#vod_footer").append(`
 `)
 
 console.log($(".bookmark .mark:nth-of-type(1)"))
+
+// CJH - LMS sound 증폭 기능. 25.09.27
+/**
+ * JW Player 인스턴스를 받아 사운드 증폭 기능을 연결하는 메인 함수
+ * @param {object} playerInstance - jwplayer() 인스턴스
+ */
+function attachSoundBooster(playerInstance) {
+    console.log("Attaching sound booster to player:", playerInstance.id);
+
+    const player = playerInstance;
+    const playerId = player.id;
+    const MAX_BOOST_LEVEL = 2.0;
+
+    let gainNode;
+    let isAudioContextInitialized = false;
+    let volumeUpdateGuard = false;
+
+
+    // Web Audio API를 사용하여 오디오 출력을 가로채고 증폭기를 연결하는 함수.
+    function initializeAudioBooster() {
+        if (isAudioContextInitialized) return;
+        
+        try {
+            const videoElement = document.querySelector(`#${playerId} video`);
+            if (!videoElement) {
+                console.error("JW Player의 video 요소를 찾을 수 없습니다.");
+                return;
+            }
+
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            gainNode = audioContext.createGain();
+            const source = audioContext.createMediaElementSource(videoElement);
+            source.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            isAudioContextInitialized = true;
+            console.log("Volume booster initialized successfully.");
+            
+            const defaultLogicalVolume = 50;
+            updateBoosterVolume(defaultLogicalVolume); // 오디오 엔진을 50%에 맞게 설정 (실제 소리 100%)
+
+            player.setVolume(defaultLogicalVolume);
+
+        } catch (e) {
+            console.error("Failed to initialize volume booster:", e);
+        }
+    }
+
+
+    // JW Player 볼륨 값(0-100)을 받아서 GainNode 볼륨으로 변환 및 적용하는 함수
+
+    function updateBoosterVolume(jwVolume) {
+        if (!isAudioContextInitialized) return;
+        const newGainValue = (jwVolume / 100) * MAX_BOOST_LEVEL;
+        gainNode.gain.value = newGainValue;
+        if (player.getVolume() !== 100) {
+            volumeUpdateGuard = true;
+            player.setVolume(100);
+        }
+    }
+    player.once('firstFrame', initializeAudioBooster);
+
+    player.on('volume', (event) => {
+        if (volumeUpdateGuard) { volumeUpdateGuard = false; return; }
+        updateBoosterVolume(event.volume);
+    });
+
+    player.on('mute', (event) => {
+        if (!isAudioContextInitialized) return;
+        gainNode.gain.value = event.mute ? 0 : (player.getVolume() / 100) * MAX_BOOST_LEVEL;
+    });
+}
+
+try {
+    const playerInstance = jwplayer();
+    if (playerInstance && playerInstance.getState() !== 'IDLE') {
+        attachSoundBooster(playerInstance);
+    } else {
+        jwplayer().on('ready', function() {
+            attachSoundBooster(this);
+        });
+    }
+} catch (e) {
+    console.error("JW Player not found or failed to initialize:", e);
+}
